@@ -1,7 +1,7 @@
+<h1 align="center">openassetpricing</h1>
+
 <p align="center">
-<b>openassetpricing</b><br>
-<i>retrieve Open Source Asset Pricing Data (Chen and
-Zimmermann)</i>
+<i>retrieve Open Source Asset Pricing Data (Chen and Zimmermann)</i>
 </p>
 
 **openassetpricing** is a Python package to download predictor portfolio
