@@ -1,13 +1,17 @@
-# openassetpricing: retrieve Open Source Asset Pricing Data (Chen and Zimmermann)
+<p align="center">
+<b>openassetpricing</b><br>
+<i>retrieve Open Source Asset Pricing Data (Chen and
+Zimmermann)</i>
+</p>
 
 **openassetpricing** is a Python package to download predictor portfolio
 returns and firm characteristics data from Chen and Zimmermann project
 of **Open Source Asset Pricing**.
 
 If you need more details about the data, please go to
-1. [Data website](https://www.openassetpricing.com/)
-2. [Github code](https://github.com/OpenSourceAP/CrossSection/)
-3. [Publication](https://www.nowpublishers.com/article/Details/CFR-0112)
+- [Data website](https://www.openassetpricing.com/)
+- [Github code](https://github.com/OpenSourceAP/CrossSection/)
+- [Publication](https://www.nowpublishers.com/article/Details/CFR-0112)
 
 ## Installation
 - Option 1: install from PyPI
@@ -17,15 +21,17 @@ pip install openassetpricing
 
 - Option 2: local installation
 1. Download the package
+
 If you have **git** installed, run in the terminal
 ```bash
 git clone
 ```
 
 If you do not have **git**, you can download the pakage by clicking
-the green `Code` button on top of the page and clicking `Download ZIP`.
+the green `Code` button on top of the page and then clicking `Download ZIP`.
 
 2. Install on your local machine
+
 Run in the terminal
 ```bash
 pip install <local path to the package>
@@ -105,5 +111,5 @@ df = openap.dl('char_predictors', 'pandas', ['BM'])
 df = openap.dl('char_predictors', 'pandas', ['BM', 'Mom12m'])
 ```
 
-> - Note
-> - The code has been tested with *Python 3.10.14*.
+### Note
+The code has been tested with *Python 3.10.14*.
