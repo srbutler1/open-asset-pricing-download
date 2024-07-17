@@ -82,7 +82,8 @@ df = openap.dl('', 'pandas')
 ```python
 # Download BM portfolio returns based on NYSE stocks only in Polars dataframe
 df = openap.dl('port_nyse', 'polars', ['BM'])
-# Download BM and 12-month momentum value-weighted quintile portfolio returns in Polars dataframe
+# Download BM and 12-month momentum value-weighted
+# quintile portfolio returns in Polars dataframe
 df = openap.dl('port_quintiles_vw', 'polars', ['BM', 'Mom12m'])
 
 # Use Pandas dataframe
@@ -113,3 +114,8 @@ df = openap.dl('char_predictors', 'pandas', ['BM', 'Mom12m'])
 
 ### Note
 The code has been tested with *Python 3.10.14*.
+
+### Contacts
+- Peng Li (pl750@bath.ac.uk)
+- Andrew Chen (andrew.y.chen@frb.gov)
+- Tom Zimmermann (tom.zimmermann@uni-koeln.de)
