@@ -6,6 +6,7 @@ from io import BytesIO
 from zipfile import ZipFile
 from tabulate import tabulate
 import wrds
+import time
 
 
 class OpenAP:
@@ -14,9 +15,14 @@ class OpenAP:
         self.datasets_map = {
             'SignalDoc.csv': 'signal_doc',
             'PredictorPortsFull.csv': 'port_op',
-            'PredictorAltPorts_Deciles.zip': 'port_deciles',
+            'PredictorAltPorts_Deciles.zip': 'port_deciles_ew',
             'PredictorAltPorts_DecilesVW.zip': 'port_deciles_vw',
-            'signed_predictors_dl_wide.zip': 'char_all_predictors'
+            'PredictorAltPorts_LiqScreen_ME_gt_NYSE20pct.zip': 'port_ex_nyse_p20_me',
+            'PredictorAltPorts_LiqScreen_NYSEonly.zip': 'port_nyse',
+            'PredictorAltPorts_LiqScreen_Price_gt_5.zip': 'port_ex_price5',
+            'PredictorAltPorts_Quintiles.zip': 'port_quintiles_ew',
+            'PredictorAltPorts_QuintilesVW.zip': 'port_quintiles_vw',
+            'signed_predictors_dl_wide.zip': 'char_predictors'
         }
 
     def list_datasets(self):
@@ -44,50 +50,69 @@ class OpenAP:
     def _convert_to_backend(self, df, df_backend):
         if df_backend == 'polars':
             return df
-        elif df_backend == 'pandas':
+        if df_backend == 'pandas':
             return df.to_pandas()
-        else:
-            raise ValueError("Unsupported backend. Choose 'polars' or 'pandas'.")
 
     def _dl_signal_doc(self, url, df_backend):
         df = pl.read_csv(url, infer_schema_length=300)
         return self._convert_to_backend(df, df_backend)
 
-    def _dl_port_op(self, url, df_backend, predictor=None):
-        df = (
-            pl.read_csv(
-                url, null_values='NA', schema_overrides={'port': pl.String})
-            .sort('signalname', 'port', 'date')
-        )
-        if predictor:
-            try:
-                df = (
-                    df.filter(pl.col('signalname').is_in(predictor))
-                    .sort('signalname', 'port', 'date')
-                )
-            except:
-                print('The predictor is not available')
+    def _port_indiv(self, df, predictor):
+        n_input = len(predictor)
+        df = df.filter(pl.col('signalname').is_in(predictor))
+        n = df['signalname'].n_unique()
+        if n != n_input:
+            print('One or more input predictors are not available.\n')
 
+        return df
+
+    def _dl_port_op(self, url, df_backend, predictor=None):
+        if not predictor:
+            df = (
+                pl.read_csv(
+                    url, null_values='NA', schema_overrides={'port': pl.String})
+                .with_columns(pl.col('date').str.to_date('%Y-%m-%d'))
+            )
+
+        if predictor:
+            if type(predictor) is list:
+                df = (
+                    pl.read_csv(
+                        url, null_values='NA',
+                        schema_overrides={'port': pl.String})
+                    .with_columns(pl.col('date').str.to_date('%Y-%m-%d'))
+                )
+                df = self._port_indiv(df, predictor)
+            else:
+                print('Predictor must be a list')
+
+        df = df.sort('signalname', 'port', 'date')
         return self._convert_to_backend(df, df_backend)
 
     def _dl_port_alt(self, df_backend, predictor=None):
-        zip_file = self._zip_source(self.url)
-        df = (
-            pl.read_csv(
-                zip_file.read(zip_file.filelist[0]),
-                null_values='NA',
-                schema_overrides={'port': pl.String})
-            .sort('signalname', 'port', 'date')
-        )
-        if predictor:
-            try:
-                df = (
-                    df.filter(pl.col('signalname').is_in(predictor))
-                    .sort('signalname', 'port', 'date')
-                )
-            except:
-                print('The predictor is not available')
+        if not predictor:
+            zip_file = self._zip_source(self.url)
+            df = (
+                pl.read_csv(
+                    zip_file.read(zip_file.filelist[0]), null_values='NA',
+                    schema_overrides={'port': pl.String})
+                .with_columns(pl.col('date').str.to_date('%Y-%m-%d'))
+            )
 
+        if predictor:
+            if type(predictor) is list:
+                zip_file = self._zip_source(self.url)
+                df = (
+                    pl.read_csv(
+                        zip_file.read(zip_file.filelist[0]), null_values='NA',
+                        schema_overrides={'port': pl.String})
+                    .with_columns(pl.col('date').str.to_date('%Y-%m-%d'))
+                )
+                df = self._port_indiv(df, predictor)
+            else:
+                print('Predictor must be a list')
+
+        df = df.sort('signalname', 'port', 'date')
         return self._convert_to_backend(df, df_backend)
 
     def _dl_char_crsp_3predictors(self):
@@ -100,6 +125,7 @@ class OpenAP:
             """
             , date_cols=['date'])
 
+        # They are signed
         df = (
             pl.from_pandas(df)
             .select(
@@ -107,48 +133,78 @@ class OpenAP:
                 pl.col('date').dt.year().mul(100)
                 .add(pl.col('date').dt.month())
                 .cast(pl.Int32).alias('yyyymm'),
-                pl.col('prc').abs().log().alias('Price'),
+                pl.col('prc').abs().log().mul(-1).alias('Price'),
                 pl.col('prc').abs().mul(pl.col('shrout')).truediv(1000)
-                .log().alias('Size'),
-                pl.col('ret').fill_null(0).alias('STreversal')
+                .log().mul(-1).alias('Size'),
+                pl.col('ret').fill_null(0).mul(-1).alias('STreversal')
             )
         )
         return df
 
     def _dl_char_predictors(self, df_backend, predictor=None):
-        temp = self._dl_char_crsp_3predictors()
-        zip_file = self._zip_source(self.url)
-        df = (
-            pl.read_csv(
-                zip_file.read(zip_file.filelist[0]), infer_schema_length=0)
-            .with_columns(
-                pl.col('permno', 'yyyymm').cast(pl.Int32),
-                pl.exclude('permno', 'yyyymm').cast(pl.Float64))
-            .join(temp, how='left', on=['permno', 'yyyymm'])
-            .sort('permno', 'yyyymm')
-        )
-        if predictor:
-            try:
-                df = (
-                    df.select('permno', 'yyyymm', pl.col(predictor))
-                    .sort('permno', 'yyyymm')
-                )
-            except:
-                print('The predictor is not available')
+        if not predictor:
+            temp = self._dl_char_crsp_3predictors()
+            zip_file = self._zip_source(self.url)
+            df = (
+                pl.read_csv(
+                    zip_file.read(zip_file.filelist[0]), infer_schema_length=0)
+                .with_columns(
+                    pl.col('permno', 'yyyymm').cast(pl.Int32),
+                    pl.exclude('permno', 'yyyymm').cast(pl.Float64))
+                .join(temp, how='left', on=['permno', 'yyyymm'])
+            )
 
+        if predictor:
+            if type(predictor) is list:
+                temp = self._dl_char_crsp_3predictors()
+                zip_file = self._zip_source(self.url)
+                df = (
+                    pl.read_csv(
+                        zip_file.read(zip_file.filelist[0]),
+                        infer_schema_length=0)
+                    .with_columns(
+                        pl.col('permno', 'yyyymm').cast(pl.Int32),
+                        pl.exclude('permno', 'yyyymm').cast(pl.Float64))
+                    .join(temp, how='left', on=['permno', 'yyyymm'])
+                )
+                try:
+                    df = df.select('permno', 'yyyymm', pl.col(predictor))
+                except:
+                    print('One or more input predictors are not available.\n')
+            else:
+                print('Predictor must be a list')
+
+        df = df.sort('permno', 'yyyymm')
         return self._convert_to_backend(df, df_backend)
 
     def dl(self, data_name, df_backend, predictor=None):
-        port_alt_list = ['port_deciles', 'port_deciles_vw']
-        self.url = self._get_url(data_name)
-        if self.url:
-            if data_name == 'signal_doc':
-                return self._dl_signal_doc(self.url, df_backend)
-            if data_name == 'port_op':
-                return self._dl_port_op(self.url, df_backend, predictor)
-            if data_name in port_alt_list:
-                return self._dl_port_alt(df_backend, predictor)
-            if data_name == 'char_predictors':
-                return self._dl_char_predictors(df_backend, predictor)
+        port_alt_list = [
+            'port_deciles_ew', 'port_deciles_vw',
+            'port_ex_nyse_p20_me', 'port_nyse', 'port_ex_price5',
+            'port_quintiles_ew', 'port_quintiles_vw']
+
+        if df_backend in ['polars', 'pandas']:
+            self.url = self._get_url(data_name)
+            if self.url:
+                start_time = time.time()
+                if data_name == 'signal_doc':
+                    df = self._dl_signal_doc(self.url, df_backend)
+                if data_name == 'port_op':
+                    df = self._dl_port_op(self.url, df_backend, predictor)
+                if data_name in port_alt_list:
+                    df = self._dl_port_alt(df_backend, predictor)
+                if data_name == 'char_predictors':
+                    df = self._dl_char_predictors(df_backend, predictor)
+
+                end_time = time.time()
+                time_used = end_time - start_time
+                if time_used <= 60:
+                    print(f'Data is downloaded: {time_used:.0f}s')
+                else:
+                    print(f'Data is downloaded: {time_used/60:.0f} mins')
+
+                return df
+            else:
+                raise ValueError('Dataset is not available.')
         else:
-            raise ValueError('Dataset is not available.')
+            raise ValueError("Unsupported backend. Choose 'polars' or 'pandas'.")
