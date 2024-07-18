@@ -4,17 +4,17 @@
 <b><i>Retrieve Open Source Asset Pricing Data (Chen and Zimmermann)</i></b>
 </p>
 
-**openassetpricing** is a Python package to download data from **Open
-Source Asset Pricing (OSAP)**.
+**openassetpricing** is a Python package to download data from Open
+Source Asset Pricing (OSAP).
 
 There are 212 cross-sectional predictors.
 
-- Predictor portfolio returns: (various portfolio construction
+- Downlaod predictor portfolio returns: (various portfolio construction
   methods: original paper methods, deciles, quintiles, equal-weighted,
   value-weighted, price filter, and so on ...)
-- Firm characteristics: 209 from OSAP + 3 from CRSP (Price, Size, STreversal)
+- Download firm characteristics: 209 from OSAP + 3 from CRSP (Price, Size, STreversal)
 
-Chen and Zimmermann data:
+Learn more about Chen and Zimmermann data:
 [Data website](https://www.openassetpricing.com/) |
 [Github code](https://github.com/OpenSourceAP/CrossSection/) |
 [Publication](https://www.nowpublishers.com/article/Details/CFR-0112)
@@ -122,7 +122,8 @@ df = openap.dl('char_predictors', 'pandas', ['BM', 'Mom12m'])
 ```
 
 ### Note
-The code has been tested with *Python 3.10.14*.
+- You need valid WRDS account.
+- The code has been tested with *Python 3.10.14*.
 
 ### Contacts
 - Peng Li (pl750@bath.ac.uk)
