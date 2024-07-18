@@ -9,10 +9,10 @@ Source Asset Pricing (OSAP).
 
 There are 212 cross-sectional predictors.
 
-- Downlaod predictor portfolio returns: (various portfolio construction
+- **Downlaod predictor portfolio returns**: various portfolio construction
   methods: original paper methods, deciles, quintiles, equal-weighted,
-  value-weighted, price filter, and so on ...)
-- Download firm characteristics: 209 from OSAP + 3 from CRSP (Price, Size, STreversal)
+  value-weighted, price filter, and so on ...
+- **Download firm characteristics**: 209 from OSAP + 3 from CRSP (Price, Size, STreversal)
 
 Learn more about Chen and Zimmermann data:
 [Data website](https://www.openassetpricing.com/) |
@@ -20,7 +20,7 @@ Learn more about Chen and Zimmermann data:
 [Publication](https://www.nowpublishers.com/article/Details/CFR-0112)
 
 ## Installation
-- Option 1: install from PyPI
+- **Option 1: install from PyPI**
 ```bash
 pip install openassetpricing
 
@@ -28,7 +28,7 @@ pip install openassetpricing
 pip install -U openassetpricing
 ```
 
-- Option 2: local installation
+- **Option 2: local installation**
 1. Download the package
 
 If you have **git** installed, run in the terminal
@@ -84,7 +84,7 @@ df = openap.dl('signal_doc', 'pandas')
 df = openap.dl('port_op', 'polars')
 
 # Download equal-weighted decile portfolio returns in Pandas dataframe
-df = openap.dl('', 'pandas')
+df = openap.dl('port_deciles_ew', 'pandas')
 ```
 
 #### Download specific predictors
