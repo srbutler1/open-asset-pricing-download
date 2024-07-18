@@ -1,4 +1,4 @@
-/build
-/openassetpricing.egg-info
-/__pycache__
+build/
+openassetpricing.egg-info/
+__pycache__/
 .DS_Store

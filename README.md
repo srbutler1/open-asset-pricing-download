@@ -1,22 +1,31 @@
 <h1 align="center">openassetpricing</h1>
 
 <p align="center">
-<i>retrieve Open Source Asset Pricing Data (Chen and Zimmermann)</i>
+<b><i>Retrieve Open Source Asset Pricing Data (Chen and Zimmermann)</i></b>
 </p>
 
-**openassetpricing** is a Python package to download predictor portfolio
-returns and firm characteristics data from Chen and Zimmermann project
-of **Open Source Asset Pricing**.
+**openassetpricing** is a Python package to download data from **Open
+Source Asset Pricing (OSAP)**.
 
-If you need more details about the data, please go to
-- [Data website](https://www.openassetpricing.com/)
-- [Github code](https://github.com/OpenSourceAP/CrossSection/)
-- [Publication](https://www.nowpublishers.com/article/Details/CFR-0112)
+There are 212 cross-sectional predictors.
+
+- Predictor portfolio returns: (various portfolio construction
+  methods: original paper methods, deciles, quintiles, equal-weighted,
+  value-weighted, price filter, and so on ...)
+- Firm characteristics: 209 from OSAP + 3 from CRSP (Price, Size, STreversal)
+
+Chen and Zimmermann data:
+[Data website](https://www.openassetpricing.com/) |
+[Github code](https://github.com/OpenSourceAP/CrossSection/) |
+[Publication](https://www.nowpublishers.com/article/Details/CFR-0112)
 
 ## Installation
 - Option 1: install from PyPI
 ```bash
 pip install openassetpricing
+
+# To upgrade
+pip install -U openassetpricing
 ```
 
 - Option 2: local installation
@@ -24,7 +33,7 @@ pip install openassetpricing
 
 If you have **git** installed, run in the terminal
 ```bash
-git clone
+git clone https://github.com/mk0417/open-asset-pricing-download
 ```
 
 If you do not have **git**, you can download the pakage by clicking
