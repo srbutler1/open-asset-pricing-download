@@ -37,9 +37,9 @@ df = openap.dl('port_op', 'polars', predictor=['AM', 'Mom12m'])
 # ==========
 
 # Download entier file
-df = openap.dl('port_deciles', 'polars')
+df = openap.dl('port_deciles_ew', 'polars')
 df = openap.dl('port_deciles_vw', 'polars')
 
 # Download specific predictors (can be single or multiple predictors)
-df = openap.dl('port_deciles', 'polars', predictor=['Accruals'])
-df = openap.dl('port_deciles', 'polars', predictor=['BM', 'Mom6m'])
+df = openap.dl('port_deciles_ew', 'polars', predictor=['Accruals'])
+df = openap.dl('port_deciles_ew', 'polars', predictor=['BM', 'Mom6m'])
