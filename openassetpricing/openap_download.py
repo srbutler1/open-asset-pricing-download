@@ -62,7 +62,7 @@ class OpenAP:
         df = df.filter(pl.col('signalname').is_in(predictor))
         n = df['signalname'].n_unique()
         if n != n_input:
-            print('One or more input predictors are not available.\n')
+            print('One or more input predictors are not available.')
 
         return df
 
@@ -170,7 +170,7 @@ class OpenAP:
                 try:
                     df = df.select('permno', 'yyyymm', pl.col(predictor))
                 except:
-                    print('One or more input predictors are not available.\n')
+                    print('One or more input predictors are not available.')
             else:
                 print('Predictor must be a list')
 
@@ -199,9 +199,9 @@ class OpenAP:
                 end_time = time.time()
                 time_used = end_time - start_time
                 if time_used <= 60:
-                    print(f'Data is downloaded: {time_used:.0f}s')
+                    print(f'\nData is downloaded: {time_used:.0f}s')
                 else:
-                    print(f'Data is downloaded: {time_used/60:.0f} mins')
+                    print(f'\nData is downloaded: {time_used/60:.0f} mins')
 
                 return df
             else:
