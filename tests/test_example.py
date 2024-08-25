@@ -34,11 +34,13 @@ df = openap.dl('port_op', 'polars', predictor=['AM', 'Mom12m'])
 # ==========
 # Portfolios -> Full Sets Alt -> PredictorAltPorts_Deciles.zip
 # Portfolios -> Full Sets Alt -> PredictorAltPorts_DecilesVW.zip
+# Portfolios -> Full Sets Alt -> PredictorAltPorts_LiqScreen_NYSEonly.zip
 # ==========
 
 # Download entier file
 df = openap.dl('port_deciles_ew', 'polars')
 df = openap.dl('port_deciles_vw', 'polars')
+df = openap.dl('port_nyse', 'polars')
 
 # Download specific predictors (can be single or multiple predictors)
 df = openap.dl('port_deciles_ew', 'polars', predictor=['Accruals'])
