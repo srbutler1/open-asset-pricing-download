@@ -1,0 +1,13 @@
+# Data is from Chen and Zimmermann: https://www.openassetpricing.com/
+
+# Version 1.40: data release - 2024.08
+release2024_url = (
+    'https://drive.google.com/drive/folders/1-PqsR-tOjv3-U9DRHw85X-VznYlu-Sfc')
+
+# Version 1.30: data release - 2023.08
+release2023_url = (
+    'https://drive.google.com/drive/folders/1EP6oEabyZRamveGNyzYU0u6qJ-N43Qfq')
+
+# Version 1.20: data release - 2022.03
+release2022_url = (
+    'https://drive.google.com/drive/folders/1O18scg9iBTiBaDiQFhoGxdn4FdsbMqGo')
