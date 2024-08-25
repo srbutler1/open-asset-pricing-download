@@ -12,6 +12,8 @@ setup(
         'pandas',
         'requests',
         'tabulate',
-        'wrds'
+        'wrds',
+        'pyarrow',
+        'beautifulsoup4'
     ],
 )
