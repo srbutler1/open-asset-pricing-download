@@ -59,7 +59,9 @@ one that fits your workflow.
 ```python
 import openassetpricing as oap
 
-openap = oap.OpenAP()
+# Download data from 2024 release
+# Change 2024 to 2023 if need 2023 release
+openap = oap.OpenAP(2024)
 ```
 
 ### List available datasets

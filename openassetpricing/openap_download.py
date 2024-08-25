@@ -1,4 +1,5 @@
 from . import urls
+from .gdrive_parse import _get_name_id_map, _get_readable_link
 import polars as pl
 import pandas as pd
 import requests
@@ -10,28 +11,24 @@ import time
 
 
 class OpenAP:
-    def __init__(self):
-        self.url = None
-        self.datasets_map = {
-            'SignalDoc.csv': 'signal_doc',
-            'PredictorPortsFull.csv': 'port_op',
-            'PredictorAltPorts_Deciles.zip': 'port_deciles_ew',
-            'PredictorAltPorts_DecilesVW.zip': 'port_deciles_vw',
-            'PredictorAltPorts_LiqScreen_ME_gt_NYSE20pct.zip': 'port_ex_nyse_p20_me',
-            'PredictorAltPorts_LiqScreen_NYSEonly.zip': 'port_nyse',
-            'PredictorAltPorts_LiqScreen_Price_gt_5.zip': 'port_ex_price5',
-            'PredictorAltPorts_Quintiles.zip': 'port_quintiles_ew',
-            'PredictorAltPorts_QuintilesVW.zip': 'port_quintiles_vw',
-            'signed_predictors_dl_wide.zip': 'char_predictors'
-        }
+    def __init__(self, release_year):
+        release_url = getattr(urls, f'release{release_year}_url', None)
+        self.name_id_map = _get_name_id_map(release_url)
 
     def list_datasets(self):
-        table = [[key, value] for key, value in self.datasets_map.items()]
+        df = self.name_id_map.select('name', 'download_name')
+        table = [i for i in df.iter_rows()]
         headers = ['CZ data file', 'Name for download']
         print(tabulate(table, headers, tablefmt='simple_outline'))
 
     def _get_url(self, data_name):
-        self.url = getattr(urls, f'{data_name}_url', None)
+        data_header = self.name_id_map.filter(pl.col('download_name')==data_name)
+        file_type = data_header[0, 'name'].split('.')[1]
+        if file_type == 'csv':
+            self.url = data_header[0, 'file_id']
+        if file_type == 'zip':
+            self.url = _get_readable_link(data_header[0, 'file_id'])
+
         return self.url
 
     def _zip_source(self, url):

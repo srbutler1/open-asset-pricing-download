@@ -2,7 +2,7 @@ import openassetpricing as oap
 
 
 # Initialize OpenAP
-openap = oap.OpenAP()
+openap = oap.OpenAP(2024)
 
 # ==========
 # List available datasets
