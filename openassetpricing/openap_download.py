@@ -136,6 +136,11 @@ class OpenAP:
                 .log().mul(-1).alias('Size'),
                 pl.col('ret').fill_null(0).mul(-1).alias('STreversal')
             )
+            .with_columns(
+                pl.when(pl.col('Size').is_finite())
+                .then(pl.col('Size'))
+                .alias('Size')
+            )
         )
         return df
 

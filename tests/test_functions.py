@@ -23,11 +23,12 @@ class OpenAP:
 
     def _get_url(self, data_name):
         data_header = self.name_id_map.filter(pl.col('download_name')==data_name)
-        file_type = data_header[0, 'name'].split('.')[1]
-        if file_type == 'csv':
-            self.url = data_header[0, 'file_id']
-        if file_type == 'zip':
+        file_with_confirm = [
+            'char_predictors', 'port_deciles_ew', 'port_deciles_vw']
+        if data_name in file_with_confirm:
             self.url = _get_readable_link(data_header[0, 'file_id'])
+        else:
+            self.url = data_header[0, 'file_id']
 
         return self.url
 
@@ -134,6 +135,11 @@ class OpenAP:
                 pl.col('prc').abs().mul(pl.col('shrout')).truediv(1000)
                 .log().mul(-1).alias('Size'),
                 pl.col('ret').fill_null(0).mul(-1).alias('STreversal')
+            )
+            .with_columns(
+                pl.when(pl.col('Size').is_finite())
+                .then(pl.col('Size'))
+                .alias('Size')
             )
         )
         return df
