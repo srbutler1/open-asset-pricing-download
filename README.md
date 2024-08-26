@@ -33,7 +33,7 @@ pip install -U openassetpricing
 
 If you have **git** installed, run in the terminal
 ```bash
-git clone https://github.com/mk0417/open-asset-pricing-download
+git clone https://github.com/mk0417/open-asset-pricing-download.git
 ```
 
 If you do not have **git**, you can download the pakage by clicking
