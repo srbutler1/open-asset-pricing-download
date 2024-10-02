@@ -158,20 +158,36 @@ class OpenAP:
             )
 
         if predictor:
+            crsp_3 = {'Price', 'Size', 'STreversal'}
+            ex_crsp_3 = [i for i in predictor if i not in crsp_3]
             if type(predictor) is list:
-                temp = self._dl_char_crsp_3predictors()
-                zip_file = self._zip_source(self.url)
-                df = (
-                    pl.read_csv(
-                        zip_file.read(zip_file.filelist[0]),
-                        infer_schema_length=0)
-                    .with_columns(
-                        pl.col('permno', 'yyyymm').cast(pl.Int32),
-                        pl.exclude('permno', 'yyyymm').cast(pl.Float64))
-                    .join(temp, how='left', on=['permno', 'yyyymm'])
-                )
                 try:
-                    df = df.select('permno', 'yyyymm', pl.col(predictor))
+                    if crsp_3 & set(predictor):
+                        temp = self._dl_char_crsp_3predictors()
+
+                    if len(ex_crsp_3) > 0:
+                        zip_file = self._zip_source(self.url)
+                        df = (
+                            pl.from_pandas(
+                                pd.read_csv(
+                                    zip_file.open(zip_file.filelist[0]),
+                                    usecols=['permno', 'yyyymm']+ex_crsp_3,
+                                    engine='pyarrow')
+                            )
+                            .with_columns(
+                                pl.col('permno', 'yyyymm').cast(pl.Int32))
+                        )
+                        if len(ex_crsp_3) < len(predictor):
+                            df = df.join(
+                                temp, how='left', on=['permno', 'yyyymm'])
+                    else:
+                        df = temp
+
+                    df = (
+                        df.select('permno', 'yyyymm', pl.col(predictor))
+                        .with_columns(
+                            pl.exclude('permno', 'yyyymm').cast(pl.Float64))
+                    )
                 except:
                     print('One or more input predictors are not available.')
             else:
