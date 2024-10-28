@@ -88,10 +88,10 @@ df = openap.dl_signal_doc('pandas')
 #### Download all predictors
 ```python
 # Download OP portfolio returns in Polars dataframe
-df = openap.dl_port('port_op', 'polars')
+df = openap.dl_port('op', 'polars')
 
 # Download equal-weighted decile portfolio returns in Pandas dataframe
-df = openap.dl_port('port_deciles_ew', 'pandas')
+df = openap.dl_port('deciles_ew', 'pandas')
 ```
 
 #### Download specific predictors
