@@ -1,8 +1,8 @@
 # This is modified based on gdown (https://github.com/wkentaro/gdown)
-# gdown is a Python package that downloads public or shared Google Drive files.
-# It does not need Google autentication setup, so access can be simplified.
-# We do not need the functionality of download. Just need to obtain file names
-# along with the file IDs
+# gdown is a Python package to download public or shared Google Drive files
+# It does not need Google autentication, so access can be simplified
+# We do not need the functionality of download. Just need to obtain file/folder
+# names along with the file IDs
 import requests
 import urllib
 import itertools
@@ -123,6 +123,35 @@ def _download_and_parse_google_drive_link(sess, url):
 
     return gdrive_file
 
+def _get_individual_signal_folder_id(sess, url):
+    """
+    Recursively searches for a folder named 'Predictors' and returns its ID.
+    If no such folder exists, returns None.
+    """
+    for _ in range(2):
+        # Set URL to English if not already done
+        url += "&hl=en" if "?" in url else "?hl=en"
+        res = sess.get(url, verify=True)
+        url = res.url  # update in case of redirect
+
+    # Parse the Google Drive file and iterate over children
+    gdrive_file, id_name_type_iter = _parse_google_drive_file(url=url, content=res.text)
+    for child_id, child_name, child_type in id_name_type_iter:
+        # Only return ID if folder is named 'Predictors'
+        if child_type == _GoogleDriveFile.TYPE_FOLDER and child_name == "Predictors":
+            return child_id  # Returns only the folder ID of 'Predictors'
+
+        # If it's another folder, recursively search in it
+        if child_type == _GoogleDriveFile.TYPE_FOLDER:
+            result = _get_individual_signal_folder_id(
+                sess=sess,
+                url="https://drive.google.com/drive/folders/" + child_id
+            )
+            if result:
+                return result
+
+    return None
+
 def _get_directory_structure(gdrive_file):
     """Converts a Google Drive folder structure into a local directory list."""
 
@@ -183,15 +212,15 @@ def _get_name_id_map(url):
     url_prefix = 'https://drive.google.com/uc?id='
     datasets_map = {
         'SignalDoc.csv': 'signal_doc',
-        'PredictorPortsFull.csv': 'port_op',
-        'PredictorAltPorts_Deciles.zip': 'port_deciles_ew',
-        'PredictorAltPorts_DecilesVW.zip': 'port_deciles_vw',
-        'PredictorAltPorts_LiqScreen_ME_gt_NYSE20pct.zip': 'port_ex_nyse_p20_me',
-        'PredictorAltPorts_LiqScreen_NYSEonly.zip': 'port_nyse',
-        'PredictorAltPorts_LiqScreen_Price_gt_5.zip': 'port_ex_price5',
-        'PredictorAltPorts_Quintiles.zip': 'port_quintiles_ew',
-        'PredictorAltPorts_QuintilesVW.zip': 'port_quintiles_vw',
-        'signed_predictors_dl_wide.zip': 'char_predictors'
+        'PredictorPortsFull.csv': 'op',
+        'PredictorAltPorts_Deciles.zip': 'deciles_ew',
+        'PredictorAltPorts_DecilesVW.zip': 'deciles_vw',
+        'PredictorAltPorts_LiqScreen_ME_gt_NYSE20pct.zip': 'ex_nyse_p20_me',
+        'PredictorAltPorts_LiqScreen_NYSEonly.zip': 'nyse',
+        'PredictorAltPorts_LiqScreen_Price_gt_5.zip': 'ex_price5',
+        'PredictorAltPorts_Quintiles.zip': 'quintiles_ew',
+        'PredictorAltPorts_QuintilesVW.zip': 'quintiles_vw',
+        'signed_predictors_dl_wide.zip': 'firm_char'
     }
 
     df = (
@@ -231,7 +260,23 @@ def _get_name_id_map(url):
         )
         .filter(pl.col('download_name').is_not_null())
     )
-    return df
+
+    # Individual signals
+    signal_folder_id = _get_individual_signal_folder_id(sess, url)
+    signal_folder_url = f'https://drive.google.com/embeddedfolderview?id={signal_folder_id}'
+    signal_response = requests.get(signal_folder_url)
+    signal_text = str(signal_response.content)
+
+    signal_file_name = r'<div class="flip-entry-title">(.*?).csv</div>'
+    signal_file_id = r'https://drive\.google\.com/file/d/([-\w]{25,})/view\?usp=drive_web'
+    signal_matches = {
+        'signal': re.findall(signal_file_name, signal_text),
+        'file_id': re.findall(signal_file_id, signal_text)}
+    df_signal = (
+        pl.DataFrame(signal_matches)
+        .with_columns(file_id='https://drive.google.com/uc?id='+pl.col('file_id'))
+    )
+    return df, df_signal
 
 def _get_readable_link(url):
     sess = _get_session()

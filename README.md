@@ -59,68 +59,71 @@ one that fits your workflow.
 ```python
 import openassetpricing as oap
 
-# Download data from 2024 release
-# Change 2024 to 2023 if need 2023 release
-openap = oap.OpenAP(2024)
+# List available release versions
+oap.list_release()
+
+# By default, it initializes the data source of most recent release
+openap = oap.OpenAP()
+
+# Specify the release version if you need vintage data, for example, 202408
+openap = oap.OpenAP(202408)
 ```
 
-### List available datasets
-You will see original dataset name of Chen and Zimmermann
+### List available portfolios (various implementations)
+You will see original portfolio names of Chen and Zimmermann and the corresponding download names.
 ```python
-openap.list_datasets()
+openap.list_port()
 ```
 
 ### Download list of predictors
 ```python
 # Use Polars dataframe
-df = openap.dl('signal_doc', 'polars')
+df = openap.dl_signal_doc('polars')
 
 # Use Pandas dataframe
-df = openap.dl('signal_doc', 'pandas')
+df = openap.dl_signal_doc('pandas')
 ```
 
 ### Download portfolio returns
 #### Download all predictors
 ```python
 # Download OP portfolio returns in Polars dataframe
-df = openap.dl('port_op', 'polars')
+df = openap.dl_port('port_op', 'polars')
 
 # Download equal-weighted decile portfolio returns in Pandas dataframe
-df = openap.dl('port_deciles_ew', 'pandas')
+df = openap.dl_port('port_deciles_ew', 'pandas')
 ```
 
 #### Download specific predictors
 ```python
 # Download BM portfolio returns based on NYSE stocks only in Polars dataframe
-df = openap.dl('port_nyse', 'polars', ['BM'])
+df = openap.dl_port('nyse', 'polars', ['BM'])
 # Download BM and 12-month momentum value-weighted
 # quintile portfolio returns in Polars dataframe
-df = openap.dl('port_quintiles_vw', 'polars', ['BM', 'Mom12m'])
+df = openap.dl_port('quintiles_vw', 'polars', ['BM', 'Mom12m'])
 
 # Use Pandas dataframe
-df = openap.dl('port_nyse', 'pandas', ['BM'])
-df = openap.dl('port_quintiles_vw', 'pandas', ['BM', 'Mom12m'])
+df = openap.dl_port('nyse', 'pandas', ['BM'])
+df = openap.dl_port('quintiles_vw', 'pandas', ['BM', 'Mom12m'])
 ```
 
 ### Download firm characteristics
 #### Download all firm characteristics
 ```python
 # Use Polars dataframe
-df = openap.dl('char_predictors', 'polars')
+df = openap.dl_all_signals('polars')
 
 # Use Pandas dataframe
-df = openap.dl('char_predictors', 'pandas')
+df = openap.dl_all_signals('pandas')
 ```
 
 #### Download specific firm characteristics
 ```python
 # Use Polars dataframe
-df = openap.dl('char_predictors', 'polars', ['BM'])
-df = openap.dl('char_predictors', 'polars', ['BM', 'Mom12m'])
+df = openap.dl_signal('polars', ['BM'])
 
 # Use Pandas dataframe
-df = openap.dl('char_predictors', 'pandas', ['BM'])
-df = openap.dl('char_predictors', 'pandas', ['BM', 'Mom12m'])
+df = openap.dl_signal('pandas', ['BM'])
 ```
 
 ### Note
