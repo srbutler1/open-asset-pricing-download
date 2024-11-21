@@ -55,7 +55,7 @@ pip install .
 Both Pandas and Polars dataframes are supported. You can choose the
 one that fits your workflow.
 
-### Import pacakge
+### Import package
 ```python
 import openassetpricing as oap
 
@@ -127,7 +127,7 @@ df = openap.dl_signal('pandas', ['BM'])
 ```
 
 ### Note
-- You need valid WRDS account.
+- To download all signals, you need a WRDS account.
 - The code has been tested with *Python 3.10.14*.
 
 ### Contacts
