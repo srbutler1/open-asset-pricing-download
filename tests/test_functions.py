@@ -29,6 +29,13 @@ class OpenAP:
             release_url = getattr(urls, f'release{release_year}_url', None)
 
         self.name_id_map, self.individual_signal_id_map = _get_name_id_map(release_url)
+        self.signal_sign = (
+            pl.read_csv(
+                self._get_url('signal_doc'), infer_schema_length=300,
+                columns=['Acronym', 'Sign'], null_values='NA')
+            .rename({'Acronym': 'signal', 'Sign': 'sign'})
+            .with_columns(pl.col('sign').cast(pl.Int8))
+        )
 
     def list_port(self):
         df = (
@@ -218,13 +225,21 @@ class OpenAP:
         df = df.sort('permno', 'yyyymm')
         return self._convert_to_backend(df, df_backend)
 
-    def _dl_individual_signal(self, df_backend, predictor):
+    def _dl_individual_signal(self, df_backend, predictor, signed=False):
         crsp3 = {'Price', 'Size', 'STreversal'}
         ex_crsp3 = [i for i in predictor if i not in crsp3]
         if type(predictor) is list:
             try:
                 if crsp3 & set(predictor):
                     temp = self._dl_signal_crsp3()
+                    # Price, Size and STreversal from CRSP by default are signed
+                    # If signed = True, do nothing
+                    # If signed = False, multiply -1
+                    if not signed:
+                        temp = temp.with_columns(
+                            pl.col('Price').mul(-1),
+                            pl.col('Size').mul(-1),
+                            pl.col('STreversal').mul(-1))
 
                 if len(ex_crsp3) > 0:
                     df = pl.DataFrame(
@@ -242,12 +257,20 @@ class OpenAP:
                                 .with_columns(
                                     pl.col('permno', 'yyyymm').cast(pl.Int32))
                             )
+                        if signed:
+                            _sign = (
+                                self.signal_sign.filter(pl.col('signal')==i)
+                                .get_column('sign')[0])
+                            if _sign is not None:
+                                temp_signal = (
+                                    temp_signal.with_columns(pl.col(i)*_sign))
 
                         df = df.join(
                             temp_signal, how='full', on=['permno', 'yyyymm'],
                             coalesce=True)
                     if len(ex_crsp3) < len(predictor):
-                        df = df.join(temp, how='full', on=['permno', 'yyyymm'],
+                        df = df.join(
+                            temp, how='full', on=['permno', 'yyyymm'],
                             coalesce=True)
                 else:
                     df = temp
@@ -316,10 +339,10 @@ class OpenAP:
         else:
             raise ValueError("Unsupported backend. Choose 'polars' or 'pandas'.")
 
-    def dl_signal(self, df_backend, predictor):
+    def dl_signal(self, df_backend, predictor, signed=False):
         if df_backend in ['polars', 'pandas']:
             start_time = time.time()
-            df = self._dl_individual_signal(df_backend, predictor)
+            df = self._dl_individual_signal(df_backend, predictor, signed)
             end_time = time.time()
             time_used = end_time - start_time
             self._print_time(time_used)
@@ -330,8 +353,6 @@ class OpenAP:
 list_release()
 
 openap = OpenAP()
-
-openap.list_release()
 
 openap.list_port()
 
@@ -354,7 +375,10 @@ df = openap.dl_all_signals('pandas', ['BM', 'Mom6m', 'Size'])
 df = openap.dl_all_signals('polars', ['BM', 'Mom6m', 'zerotrade6M'])
 
 df = openap.dl_signal('polars', ['BM'])
+df = openap.dl_signal('pandas', ['AssetGrowth'])
+df = openap.dl_signal('pandas', ['AssetGrowth'], signed=True)
 df = openap.dl_signal('polars', ['BM', 'Mom6m', 'Size'])
+df = openap.dl_signal('polars', ['BM', 'Mom6m', 'Size'], signed=True)
 df = openap.dl_signal('polars', ['BM', 'Mom6m', 'zerotrade6M'])
 
 df
