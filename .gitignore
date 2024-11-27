@@ -1,5 +1,7 @@
 build/
+dist/
 openassetpricing.egg-info/
 __pycache__/
 tests/__pycache__/
+examples/.ipynb_checkpoints/
 .DS_Store
