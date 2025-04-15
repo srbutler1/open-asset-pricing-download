@@ -1,0 +1,7 @@
+pandas
+polars
+numpy
+wrds
+statsmodels
+scikit-learn
+matplotlib
